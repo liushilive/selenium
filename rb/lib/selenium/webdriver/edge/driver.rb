@@ -19,14 +19,21 @@
 
 module Selenium
   module WebDriver
-    module Safari
+    module Edge
+
+      #
+      # Driver implementation for Microsoft Edge.
       # @api private
-      class Bridge < Remote::Bridge
+      #
+
+      class Driver < WebDriver::Driver
+        include DriverExtensions::TakesScreenshot
+
         def initialize(opts = {})
-          opts[:desired_capabilities] ||= Remote::Capabilities.safari
+          opts[:desired_capabilities] ||= Remote::W3C::Capabilities.edge
 
           unless opts.key?(:url)
-            driver_path = opts.delete(:driver_path) || Safari.driver_path
+            driver_path = opts.delete(:driver_path) || Edge.driver_path
             port = opts.delete(:port) || Service::DEFAULT_PORT
 
             opts[:driver_opts] ||= {}
@@ -38,11 +45,19 @@ module Selenium
             end
 
             @service = Service.new(driver_path, port, opts.delete(:driver_opts))
+            @service.host = 'localhost' if @service.host == '127.0.0.1'
             @service.start
             opts[:url] = @service.uri
           end
 
-          super(opts)
+          @bridge = Remote::Bridge.handshake(opts)
+          @bridge.extend Edge::Bridge
+
+          super(@bridge, listener: opts[:listener])
+        end
+
+        def browser
+          :edge
         end
 
         def quit
@@ -50,7 +65,8 @@ module Selenium
         ensure
           @service.stop if @service
         end
-      end # Bridge
-    end # Safari
+
+      end # Driver
+    end # Edge
   end # WebDriver
 end # Selenium

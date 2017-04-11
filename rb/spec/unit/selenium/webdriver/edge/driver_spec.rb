@@ -21,40 +21,26 @@ require File.expand_path('../../spec_helper', __FILE__)
 
 module Selenium
   module WebDriver
-    module Safari
-      describe Service do
-        let(:resp) { {'sessionId' => 'foo', 'value' => Remote::Capabilities.safari.as_json} }
-        let(:service) { instance_double(Service, start: true, uri: 'http://example.com') }
-        let(:caps) { Remote::Capabilities.safari }
-        let(:http) { instance_double(Remote::Http::Default, call: resp).as_null_object }
+    module Edge
+      describe Driver do
+        let(:resp)    { {'sessionId' => 'foo', 'value' => Remote::Capabilities.internet_explorer.as_json} }
+        let(:service) { instance_double(Service, start: nil, uri: 'http://example.com') }
+        let(:caps)    { Remote::Capabilities.internet_explorer }
+        let(:http)    { instance_double(Remote::Http::Default, call: resp).as_null_object }
 
         before do
-          allow(Remote::Capabilities).to receive(:safari).and_return(caps)
-          allow_any_instance_of(Service).to receive(:start)
-          allow_any_instance_of(Service).to receive(:binary_path)
+          allow(Remote::Capabilities).to receive(:internet_explorer).and_return(caps)
+          allow(Service).to receive(:binary_path).and_return('/foo')
+          allow(Service).to receive(:new).and_return(service)
         end
 
-        it 'does not start driver when receives url' do
+        it 'accepts server URL' do
           expect(Service).not_to receive(:new)
           expect(http).to receive(:server_url=).with(URI.parse('http://example.com:4321'))
 
           Driver.new(http_client: http, url: 'http://example.com:4321')
         end
-
-        it 'defaults to desired path and port' do
-          expect(Service).to receive(:new).with(Safari.driver_path, Service::DEFAULT_PORT, {}).and_return(service)
-
-          Driver.new(http_client: http)
-        end
-
-        it 'accepts a driver path & port' do
-          path = '/foo/chromedriver'
-          port = '1234'
-          expect(Service).to receive(:new).with(path, '1234', {}).and_return(service)
-
-          Driver.new(http_client: http, driver_path: path, port: port)
-        end
       end
-    end # Safari
+    end # Edge
   end # WebDriver
 end # Selenium

@@ -17,32 +17,34 @@
 # specific language governing permissions and limitations
 # under the License.
 
-require File.expand_path('../../spec_helper', __FILE__)
-
 module Selenium
   module WebDriver
-    module PhantomJS
-      describe Bridge do
-        let(:resp)    { {'sessionId' => 'foo', 'value' => Remote::Capabilities.phantomjs.as_json} }
-        let(:service) { double(Service, start: true, uri: 'http://example.com') }
-        let(:http)    { double(Remote::Http::Default, call: resp).as_null_object }
+    module Firefox
+      module Driver
+        class << self
 
-        before do
-          allow(Service).to receive(:binary_path).and_return('/foo')
-          allow(Service).to receive(:new).and_return(service)
-        end
+          #
+          # Instantiates correct Firefox driver implementation
+          # @return [Marionette::Driver, Legacy::Driver]
+          #
 
-        it 'takes desired capabilities' do
-          custom_caps = Remote::Capabilities.new(browser_name: 'foo')
-
-          expect(http).to receive(:call) do |_verb, _post, payload|
-            expect(payload[:desiredCapabilities]).to eq(custom_caps)
-            resp
+          def new(**opts)
+            if marionette?(opts)
+              Firefox::Marionette::Driver.new(opts)
+            else
+              Firefox::Legacy::Driver.new(opts)
+            end
           end
 
-          Bridge.new(http_client: http, desired_capabilities: custom_caps)
+          private
+
+          def marionette?(opts)
+            opts.delete(:marionette) != false &&
+              (!opts[:desired_capabilities] || opts[:desired_capabilities].delete(:marionette) != false)
+          end
         end
-      end
-    end # PhantomJS
+
+      end # Driver
+    end # Firefox
   end # WebDriver
 end # Selenium

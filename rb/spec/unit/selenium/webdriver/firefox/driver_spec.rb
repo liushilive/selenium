@@ -21,29 +21,25 @@ require File.expand_path('../../spec_helper', __FILE__)
 
 module Selenium
   module WebDriver
-    module Edge
-      describe Bridge do
-        let(:resp)    { {'sessionId' => 'foo', 'value' => @default_capabilities.as_json} }
-        let(:service) { double(Service, start: nil, uri: 'http://example.com') }
-        let(:caps)    { {} }
-        let(:http)    { double(Remote::Http::Default, call: resp).as_null_object }
+    module Firefox
+      describe Driver do
+        let(:launcher) { double(Launcher, launch: nil, quit: nil, url: 'http://localhost:4444/wd/hub') }
 
         before do
-          @default_capabilities = Remote::Capabilities.internet_explorer
-
-          allow(Remote::Capabilities).to receive(:internet_explorer).and_return(caps)
-          allow(Service).to receive(:binary_path).and_return('/foo')
-          allow(Service).to receive(:new).and_return(service)
+          expect(Remote::Bridge).to receive(:handshake)
+          allow(Launcher).to receive(:new).and_return(launcher)
         end
 
-        it 'accepts server URL' do
-          expect(Service).not_to receive(:new)
-          expect(http).to receive(:server_url=).with(URI.parse('http://example.com:4321'))
-
-          Bridge.new(http_client: http, url: 'http://example.com:4321')
+        it 'is marionette driver by default' do
+          driver = Driver.new
+          expect(driver).to be_a(Marionette::Driver)
         end
 
+        it 'is legacy driver when asked for' do
+          driver = Driver.new(marionette: false)
+          expect(driver).to be_a(Legacy::Driver)
+        end
       end
-    end # Edge
+    end # Firefox
   end # WebDriver
 end # Selenium

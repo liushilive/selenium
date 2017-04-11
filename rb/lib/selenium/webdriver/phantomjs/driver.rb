@@ -19,33 +19,31 @@
 
 module Selenium
   module WebDriver
-    module IE
+    module PhantomJS
+
       #
+      # Driver implementation for PhantomJS.
       # @api private
       #
 
-      class Bridge < Remote::Bridge
+      class Driver < WebDriver::Driver
+        include DriverExtensions::TakesScreenshot
+
         def initialize(opts = {})
-          opts[:desired_capabilities] ||= Remote::Capabilities.internet_explorer
+          opts[:desired_capabilities] ||= Remote::Capabilities.phantomjs
 
           unless opts.key?(:url)
-            driver_path = opts.delete(:driver_path) || IE.driver_path
+            driver_path = opts.delete(:driver_path) || PhantomJS.driver_path
             port = opts.delete(:port) || Service::DEFAULT_PORT
 
             opts[:driver_opts] ||= {}
-            if opts.key? :service_args
+            if opts.key? :args
               WebDriver.logger.warn <<-DEPRECATE.gsub(/\n +| {2,}/, ' ').freeze
-            [DEPRECATION] `:service_args` is deprecated. Pass switches using `driver_opts`
+            [DEPRECATION] `:args` is deprecated. Pass switches using `driver_opts`
               DEPRECATE
-              opts[:driver_opts][:args] = opts.delete(:service_args)
-            end
-
-            %i[log_level log_file implementation].each do |method|
-              next unless opts.key? method
-              WebDriver.logger.warn <<-DEPRECATE.gsub(/\n +| {2,}/, ' ').freeze
-            [DEPRECATION] `#{method}` is deprecated. Pass switches using `driver_opts`
-              DEPRECATE
-              opts[:driver_opts][method] = opts.delete(method)
+              opts[:driver_opts][:args] = opts.delete(:args)
+            elsif opts[:desired_capabilities]['phantomjs.cli.args']
+              opts[:driver_opts][:args] = opts[:desired_capabilities]['phantomjs.cli.args']
             end
 
             @service = Service.new(driver_path, port, opts.delete(:driver_opts))
@@ -53,20 +51,12 @@ module Selenium
             opts[:url] = @service.uri
           end
 
-          if opts.delete(:introduce_flakiness_by_ignoring_security_domains)
-            opts[:desired_capabilities][:ignore_protected_mode_settings] = true
-          end
-          opts[:desired_capabilities][:native_events] = opts.delete(:native_events) != false
-
-          super(opts)
+          @bridge = Remote::Bridge.handshake(opts)
+          super(@bridge, listener: opts[:listener])
         end
 
         def browser
-          :internet_explorer
-        end
-
-        def driver_extensions
-          [DriverExtensions::TakesScreenshot]
+          :phantomjs
         end
 
         def quit
@@ -74,7 +64,8 @@ module Selenium
         ensure
           @service.stop if @service
         end
+
       end # Bridge
-    end # IE
+    end # PhantomJS
   end # WebDriver
 end # Selenium
