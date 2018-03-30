@@ -34,22 +34,16 @@ import static org.openqa.selenium.testing.Driver.SAFARI;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
-import org.openqa.selenium.internal.Locatable;
+import org.openqa.selenium.interactions.internal.Locatable;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.testing.Ignore;
 import org.openqa.selenium.testing.JUnit4TestBase;
-import org.openqa.selenium.testing.JavascriptEnabled;
 import org.openqa.selenium.testing.NeedsFreshDriver;
 import org.openqa.selenium.testing.NotYetImplemented;
 
-/**
- * Test case for browsers that support using Javascript
- */
 public class JavascriptEnabledDriverTest extends JUnit4TestBase {
 
-  @JavascriptEnabled
   @Test
-  public void testDocumentShouldReflectLatestTitle() throws Exception {
+  public void testDocumentShouldReflectLatestTitle() {
     driver.get(pages.javascriptPage);
 
     assertThat(driver.getTitle(), equalTo("Testing Javascript"));
@@ -58,10 +52,10 @@ public class JavascriptEnabledDriverTest extends JUnit4TestBase {
     assertThat(driver.getTitle(), equalTo("Changed"));
   }
 
-  @JavascriptEnabled
   @Test
-  @Ignore(MARIONETTE)
-  public void testDocumentShouldReflectLatestDom() throws Exception {
+  @NotYetImplemented(value = MARIONETTE, reason = "https://bugzilla.mozilla.org/show_bug.cgi?id=1381519")
+  @NotYetImplemented(SAFARI)
+  public void testDocumentShouldReflectLatestDom() {
     driver.get(pages.javascriptPage);
     String currentText = driver.findElement(By.xpath("//div[@id='dynamo']")).getText();
     assertThat(currentText, equalTo("What's for dinner?"));
@@ -75,7 +69,6 @@ public class JavascriptEnabledDriverTest extends JUnit4TestBase {
     assertThat(dynamo.getText(), equalTo("Fish and chips!"));
   }
 
-  @JavascriptEnabled
   @Test
   public void testShouldWaitForLoadsToCompleteAfterJavascriptCausesANewPageToLoad() {
     driver.get(pages.formPage);
@@ -86,7 +79,6 @@ public class JavascriptEnabledDriverTest extends JUnit4TestBase {
     assertThat(driver.getTitle(), equalTo("Page3"));
   }
 
-  @JavascriptEnabled
   @Test
   public void testShouldBeAbleToFindElementAfterJavascriptCausesANewPageToLoad() {
     driver.get(pages.formPage);
@@ -97,9 +89,8 @@ public class JavascriptEnabledDriverTest extends JUnit4TestBase {
     assertThat(driver.findElement(By.id("pageNumber")).getText(), equalTo("3"));
   }
 
-  @JavascriptEnabled
   @Test
-  @NotYetImplemented(value = MARIONETTE, reason = "https://github.com/mozilla/geckodriver/issues/594")
+  @NotYetImplemented(value = SAFARI, reason = "getText does not normalize spaces")
   public void testShouldFireOnChangeEventWhenSettingAnElementsValue() {
     driver.get(pages.javascriptPage);
     driver.findElement(By.id("change")).sendKeys("foo");
@@ -108,7 +99,6 @@ public class JavascriptEnabledDriverTest extends JUnit4TestBase {
     assertThat(result, equalTo("change"));
   }
 
-  @JavascriptEnabled
   @Test
   public void testShouldBeAbleToSubmitFormsByCausingTheOnClickEventToFire() {
     driver.get(pages.javascriptPage);
@@ -124,7 +114,6 @@ public class JavascriptEnabledDriverTest extends JUnit4TestBase {
     wait.until(titleIs(newTitle));
   }
 
-  @JavascriptEnabled
   @Test
   public void testShouldBeAbleToClickOnSubmitButtons() {
     driver.get(pages.javascriptPage);
@@ -136,7 +125,6 @@ public class JavascriptEnabledDriverTest extends JUnit4TestBase {
     assertThat(driver.getTitle(), is("We Arrive Here"));
   }
 
-  @JavascriptEnabled
   @Test
   public void testIssue80ClickShouldGenerateClickEvent() {
     driver.get(pages.javascriptPage);
@@ -150,7 +138,6 @@ public class JavascriptEnabledDriverTest extends JUnit4TestBase {
     assertEquals("Clicked", elementValue);
   }
 
-  @JavascriptEnabled
   @Test
   public void testShouldBeAbleToSwitchToFocusedElement() {
     driver.get(pages.javascriptPage);
@@ -161,7 +148,6 @@ public class JavascriptEnabledDriverTest extends JUnit4TestBase {
     assertThat(element.getAttribute("id"), is("theworks"));
   }
 
-  @JavascriptEnabled
   @Test
   public void testIfNoElementHasFocusTheActiveElementIsTheBody() {
     driver.get(pages.simpleTestPage);
@@ -171,10 +157,8 @@ public class JavascriptEnabledDriverTest extends JUnit4TestBase {
     assertThat(element.getAttribute("name"), is("body"));
   }
 
-  @JavascriptEnabled
   @Test
-  @Ignore(value = SAFARI, reason = "issue 4061")
-  @NotYetImplemented(value = MARIONETTE, reason = "https://github.com/mozilla/geckodriver/issues/594")
+  @NotYetImplemented(value = SAFARI)
   public void testChangeEventIsFiredAppropriatelyWhenFocusIsLost() {
     driver.get(pages.javascriptPage);
 
@@ -198,7 +182,6 @@ public class JavascriptEnabledDriverTest extends JUnit4TestBase {
   /**
    * If the click handler throws an exception, the firefox driver freezes. This is suboptimal.
    */
-  @JavascriptEnabled
   @Test
   public void testShouldBeAbleToClickIfEvenSomethingHorribleHappens() {
     driver.get(pages.javascriptPage);
@@ -239,11 +222,9 @@ public class JavascriptEnabledDriverTest extends JUnit4TestBase {
    * running: "ImplicitWaitTest", "TemporaryFilesystemTest", "JavascriptEnabledDriverTest".
    * SimonStewart 2010-10-04
    */
-  @JavascriptEnabled
   @NeedsFreshDriver
   @Test
-  @Ignore(value = SAFARI, reason = "issue 3693")
-  public void testShouldBeAbleToClickALinkThatClosesAWindow() throws Exception {
+  public void testShouldBeAbleToClickALinkThatClosesAWindow() {
     driver.get(pages.javascriptPage);
 
     String handle = driver.getWindowHandle();

@@ -93,6 +93,7 @@ BrowserFactory::BrowserFactory(void) {
   // Must be done in the constructor. Do not move to Initialize().
   this->GetExecutableLocation();
   this->GetIEVersion();
+  this->oleacc_instance_handle_ = NULL;
 }
 
 BrowserFactory::~BrowserFactory(void) {
@@ -493,10 +494,14 @@ bool BrowserFactory::AttachToBrowserUsingShellWindows(
   LOG(TRACE) << "Entering BrowserFactory::AttachToBrowserUsingShellWindows";
 
   CComPtr<IShellWindows> shell_windows;
-  shell_windows.CoCreateInstance(CLSID_ShellWindows);
+  HRESULT hr = shell_windows.CoCreateInstance(CLSID_ShellWindows);
+  if (FAILED(hr)) {
+    LOGHR(WARN, hr) << "Unable to create an object using the IShellWindows interface with CoCreateInstance";
+    return false;
+  }
 
   CComPtr<IUnknown> enumerator_unknown;
-  HRESULT hr = shell_windows->_NewEnum(&enumerator_unknown);
+  hr = shell_windows->_NewEnum(&enumerator_unknown);
   if (FAILED(hr)) {
     LOGHR(WARN, hr) << "Unable to get enumerator from IShellWindows interface";
     return false;

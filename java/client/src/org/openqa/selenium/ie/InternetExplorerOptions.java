@@ -1,6 +1,22 @@
+// Licensed to the Software Freedom Conservancy (SFC) under one
+// or more contributor license agreements.  See the NOTICE file
+// distributed with this work for additional information
+// regarding copyright ownership.  The SFC licenses this file
+// to you under the Apache License, Version 2.0 (the
+// "License"); you may not use this file except in compliance
+// with the License.  You may obtain a copy of the License at
+//
+//   http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
 package org.openqa.selenium.ie;
 
-import static java.util.stream.Collectors.toMap;
 import static org.openqa.selenium.ie.InternetExplorerDriver.BROWSER_ATTACH_TIMEOUT;
 import static org.openqa.selenium.ie.InternetExplorerDriver.ELEMENT_SCROLL_BEHAVIOR;
 import static org.openqa.selenium.ie.InternetExplorerDriver.ENABLE_PERSISTENT_HOVERING;
@@ -13,33 +29,48 @@ import static org.openqa.selenium.ie.InternetExplorerDriver.INITIAL_BROWSER_URL;
 import static org.openqa.selenium.ie.InternetExplorerDriver.INTRODUCE_FLAKINESS_BY_IGNORING_SECURITY_DOMAINS;
 import static org.openqa.selenium.ie.InternetExplorerDriver.NATIVE_EVENTS;
 import static org.openqa.selenium.ie.InternetExplorerDriver.REQUIRE_WINDOW_FOCUS;
+import static org.openqa.selenium.remote.CapabilityType.BROWSER_NAME;
+import static org.openqa.selenium.remote.CapabilityType.PAGE_LOAD_STRATEGY;
+import static org.openqa.selenium.remote.CapabilityType.PLATFORM;
+import static org.openqa.selenium.remote.CapabilityType.UNHANDLED_PROMPT_BEHAVIOUR;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Streams;
 
 import org.openqa.selenium.Beta;
 import org.openqa.selenium.Capabilities;
-import org.openqa.selenium.ImmutableCapabilities;
+import org.openqa.selenium.MutableCapabilities;
+import org.openqa.selenium.PageLoadStrategy;
+import org.openqa.selenium.Platform;
+import org.openqa.selenium.Proxy;
+import org.openqa.selenium.UnexpectedAlertBehaviour;
 import org.openqa.selenium.internal.ElementScrollBehavior;
+import org.openqa.selenium.remote.BrowserType;
+import org.openqa.selenium.remote.CapabilityType;
+import org.openqa.selenium.remote.DesiredCapabilities;
 
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Options for configuring the use of IE. Can be used like so:
  * <pre>InternetExplorerOptions options = new InternetExplorerOptions()
  *   .requireWindowFocus();
  *
- *new InternetExplorerDriver(options.merge(DesiredCapabilities.internetExplorer());</pre>
+ *new InternetExplorerDriver(options);</pre>
  */
 @Beta
-public class InternetExplorerOptions {
+public class InternetExplorerOptions extends MutableCapabilities {
 
   private final static String IE_OPTIONS = "se:ieOptions";
 
@@ -48,7 +79,7 @@ public class InternetExplorerOptions {
   private static final String FORCE_WINDOW_SHELL_API = "ie.forceShellWindowsApi";
   private static final String VALIDATE_COOKIE_DOCUMENT_TYPE = "ie.validateCookieDocumentType";
 
-  private final static Set<String> CAPABILIITY_NAMES = ImmutableSortedSet.<String>naturalOrder()
+  private final static Set<String> CAPABILITY_NAMES = ImmutableSortedSet.<String>naturalOrder()
       .add(BROWSER_ATTACH_TIMEOUT)
       .add(ELEMENT_SCROLL_BEHAVIOR)
       .add(ENABLE_PERSISTENT_HOVERING)
@@ -66,44 +97,27 @@ public class InternetExplorerOptions {
       .add(VALIDATE_COOKIE_DOCUMENT_TYPE)
       .build();
 
-  private final Map<String, Object> renderedView;
-  private final Map<String, Object> options;
+  private Map<String, Object> ieOptions = new HashMap<>();
 
   public InternetExplorerOptions() {
-    this(new ImmutableCapabilities(new HashMap<>()));
+    this(DesiredCapabilities.internetExplorer());
   }
 
   public InternetExplorerOptions(Capabilities source) {
-    Preconditions.checkNotNull(source, "Source capabilities must not be null");
-    renderedView = new HashMap<>(source.asMap());
+    super();
 
-    // We rely on the fact that the legacy names and the new names are the same. We want any options
-    // set in the raw capabilities to take precedence.
-    Object raw = source.getCapability(IE_OPTIONS);
-    Map<String, ?> existing;
-    if (raw instanceof Map) {
-      //noinspection unchecked
-      existing = (Map<String, ?>) raw;
-    } else if (raw == null) {
-      existing = new HashMap<>();
-    } else {
-      throw new IllegalArgumentException("Existing options are not of expected type: " + raw);
-    }
+    setCapability(IE_OPTIONS, ieOptions);
+    setCapability(BROWSER_NAME, BrowserType.IE);
+    setCapability(PLATFORM, Platform.WINDOWS);
+    setCapability(CapabilityType.ForSeleniumServer.ENSURING_CLEAN_SESSION, true);
 
-    Map<String, ?> originalCapabilities = source.asMap();
+    merge(source);
+  }
 
-    options = CAPABILIITY_NAMES.stream()
-        .filter(originalCapabilities::containsKey)
-        .filter(key -> originalCapabilities.get(key) != null)
-        .collect(toMap(key -> key, originalCapabilities::get));
-
-    options.putAll(CAPABILIITY_NAMES.stream()
-        .filter(existing::containsKey)
-        .filter(name -> existing.get(name) != null)
-        .collect(toMap(key -> key, existing::get)));
-
-    renderedView.putAll(options);
-    renderedView.put(IE_OPTIONS, options);
+  @Override
+  public InternetExplorerOptions merge(Capabilities extraCapabilities) {
+    super.merge(extraCapabilities);
+    return this;
   }
 
   public InternetExplorerOptions withAttachTimeout(long duration, TimeUnit unit) {
@@ -150,11 +164,19 @@ public class InternetExplorerOptions {
   }
 
   public InternetExplorerOptions addCommandSwitches(String... switches) {
-    //noinspection unchecked
-    List<String> flags = (List<String>) options.getOrDefault(IE_SWITCHES, new ArrayList<>());
+    Object raw = getCapability(IE_SWITCHES);
+    if (raw == null) {
+      raw = new LinkedList<>();
+    } else if (raw instanceof String) {
+      raw = Arrays.asList(((String) raw).split(" "));
+    }
 
-    flags.addAll(Arrays.asList(switches));
-    return amend(IE_SWITCHES, flags);
+    return amend(
+        IE_SWITCHES,
+        Streams.concat((Stream<?>) List.class.cast(raw).stream(), Stream.of(switches))
+            .filter(i -> i instanceof String)
+            .map(String.class::cast)
+            .collect(ImmutableList.toImmutableList()));
   }
 
   /**
@@ -204,21 +226,53 @@ public class InternetExplorerOptions {
     return amend(FULL_PAGE_SCREENSHOT, true);
   }
 
-  private InternetExplorerOptions amend(String optionName, Object value) {
-    renderedView.put(optionName, value);
-    options.put(optionName, value);
+  public InternetExplorerOptions setPageLoadStrategy(PageLoadStrategy strategy) {
+    return amend(PAGE_LOAD_STRATEGY, strategy);
+  }
+
+  public InternetExplorerOptions setUnhandledPromptBehaviour(UnexpectedAlertBehaviour behaviour) {
+    return amend(UNHANDLED_PROMPT_BEHAVIOUR, behaviour);
+  }
+
+  public InternetExplorerOptions setProxy(Proxy proxy) {
+    setCapability(CapabilityType.PROXY, proxy);
     return this;
   }
 
-  public Capabilities merge(Capabilities other) {
-    Map<String, Object> caps = new HashMap<>(other.asMap());
-
-    caps.putAll(renderedView);
-
-    return new ImmutableCapabilities(caps);
+  private InternetExplorerOptions amend(String optionName, Object value) {
+    setCapability(optionName, value);
+    return this;
   }
 
-  public Map<String, ?> asMap() {
-    return options;
+  @Override
+  public void setCapability(String key, Object value) {
+    super.setCapability(key, value);
+
+    if (IE_SWITCHES.equals(key)) {
+      if (value instanceof List) {
+        value = ((List<?>) value).stream().map(Object::toString).collect(Collectors.joining(" "));
+      }
+    }
+
+    if (CAPABILITY_NAMES.contains(key)) {
+      ieOptions.put(key, value);
+    }
+
+    if (IE_OPTIONS.equals(key)) {
+      ieOptions.clear();
+      Map<?, ?> streamFrom;
+      if (value instanceof Map) {
+        streamFrom = (Map<?, ?>) value;
+      } else if (value instanceof Capabilities) {
+        streamFrom = ((Capabilities) value).asMap();
+      } else {
+        throw new IllegalArgumentException("Value must not be null for " + key);
+      }
+
+      streamFrom.entrySet().stream()
+          .filter(e -> CAPABILITY_NAMES.contains(e.getKey()))
+          .filter(e -> e.getValue() != null)
+          .forEach(e -> setCapability((String) e.getKey(), e.getValue()));
+    }
   }
 }

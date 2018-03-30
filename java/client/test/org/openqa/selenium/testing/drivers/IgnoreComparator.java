@@ -15,29 +15,24 @@
 // specific language governing permissions and limitations
 // under the License.
 
-
 package org.openqa.selenium.testing.drivers;
 
-import com.google.common.collect.Sets;
-
 import org.eclipse.egit.github.core.Issue;
-import org.eclipse.egit.github.core.Repository;
-import org.eclipse.egit.github.core.client.GitHubClient;
 import org.eclipse.egit.github.core.service.IssueService;
-import org.eclipse.egit.github.core.service.RepositoryService;
 import org.openqa.selenium.Platform;
 import org.openqa.selenium.testing.Driver;
 import org.openqa.selenium.testing.Ignore;
 import org.openqa.selenium.testing.IgnoreList;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 public class IgnoreComparator {
-  private Set<Driver> ignored = Sets.newHashSet();
+  private Set<Driver> ignored = new HashSet<>();
   private Platform currentPlatform = Platform.getCurrent();
 
   // TODO(simon): reduce visibility

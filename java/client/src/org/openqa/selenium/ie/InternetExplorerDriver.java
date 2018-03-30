@@ -20,7 +20,6 @@ package org.openqa.selenium.ie;
 import com.google.common.base.Preconditions;
 
 import org.openqa.selenium.Capabilities;
-import org.openqa.selenium.ImmutableCapabilities;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.Platform;
 import org.openqa.selenium.WebDriverException;
@@ -32,7 +31,6 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.service.DriverCommandExecutor;
 
 import java.io.File;
-import java.util.HashMap;
 
 public class InternetExplorerDriver extends RemoteWebDriver {
 
@@ -154,8 +152,16 @@ public class InternetExplorerDriver extends RemoteWebDriver {
     this(null, null, DEFAULT_PORT);
   }
 
+  /**
+   * @deprecated Use {@link #InternetExplorerDriver(InternetExplorerOptions)}
+   */
+  @Deprecated
   public InternetExplorerDriver(Capabilities capabilities) {
     this(null, capabilities, DEFAULT_PORT);
+  }
+
+  public InternetExplorerDriver(InternetExplorerOptions options) {
+    this(null, options);
   }
 
   /**
@@ -168,24 +174,22 @@ public class InternetExplorerDriver extends RemoteWebDriver {
     this(null, null, port);
   }
 
-  /**
-   * @deprecated Create an {@link InternetExplorerDriverService} and then use that to create a
-   *   {@link RemoteWebDriver#RemoteWebDriver(org.openqa.selenium.remote.CommandExecutor, Capabilities)} with a
-   *   {@link DriverCommandExecutor}.
-   */
-  @Deprecated
   public InternetExplorerDriver(InternetExplorerDriverService service) {
     this(service, null, DEFAULT_PORT);
   }
 
   /**
-   * @deprecated Create an {@link InternetExplorerDriverService} and then use that to create a
-   *   {@link RemoteWebDriver#RemoteWebDriver(org.openqa.selenium.remote.CommandExecutor, Capabilities)} with a
-   *   {@link DriverCommandExecutor}.
+   * @deprecated Use {@link #InternetExplorerDriver(InternetExplorerDriverService, InternetExplorerOptions)}
    */
   @Deprecated
   public InternetExplorerDriver(InternetExplorerDriverService service, Capabilities capabilities) {
     this(service, capabilities, DEFAULT_PORT);
+  }
+
+  public InternetExplorerDriver(
+      InternetExplorerDriverService service,
+      InternetExplorerOptions options) {
+    this(service, options, DEFAULT_PORT);
   }
 
   /**
@@ -203,8 +207,7 @@ public class InternetExplorerDriver extends RemoteWebDriver {
     }
 
     Preconditions.checkNotNull(capabilities);
-    capabilities = new InternetExplorerOptions(capabilities)
-        .merge(new ImmutableCapabilities(new HashMap<>()));
+    capabilities = new InternetExplorerOptions(capabilities);
 
     if (service == null) {
       service = setupService(capabilities, port);

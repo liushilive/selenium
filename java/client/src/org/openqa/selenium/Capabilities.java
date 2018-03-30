@@ -32,14 +32,18 @@ public interface Capabilities {
   }
 
   default Platform getPlatform() {
-    Object rawPlatform = getCapability("platform");
+    Object rawPlatform = getCapability("platformName");
+
+    if (rawPlatform == null) {
+      rawPlatform = getCapability("platform");
+    }
 
     if (rawPlatform == null) {
       return null;
     }
 
     if (rawPlatform instanceof String) {
-      return Platform.valueOf((String) rawPlatform);
+      return Platform.fromString((String) rawPlatform);
     } else if (rawPlatform instanceof Platform) {
       return (Platform) rawPlatform;
     }
@@ -48,7 +52,8 @@ public interface Capabilities {
   }
 
   default String getVersion() {
-    return String.valueOf(Optional.ofNullable(getCapability("version")).orElse(""));
+    return String.valueOf(Optional.ofNullable(getCapability("browserVersion")).orElse(
+        Optional.ofNullable(getCapability("version")).orElse("")));
   }
 
   /**

@@ -25,16 +25,13 @@ import static org.openqa.selenium.support.ui.ExpectedConditions.titleIs;
 import static org.openqa.selenium.testing.Driver.FIREFOX;
 import static org.openqa.selenium.testing.Driver.IE;
 import static org.openqa.selenium.testing.Driver.MARIONETTE;
-import static org.openqa.selenium.testing.Driver.PHANTOMJS;
 import static org.openqa.selenium.testing.Driver.SAFARI;
 import static org.openqa.selenium.testing.InProject.locate;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.common.net.HostAndPort;
 import com.google.common.net.HttpHeaders;
 
@@ -44,11 +41,9 @@ import org.junit.Test;
 import org.junit.rules.ExternalResource;
 import org.openqa.selenium.net.PortProber;
 import org.openqa.selenium.net.UrlChecker;
-import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.openqa.selenium.testing.Ignore;
 import org.openqa.selenium.testing.JUnit4TestBase;
-import org.openqa.selenium.testing.JavascriptEnabled;
 import org.openqa.selenium.testing.NeedsLocalEnvironment;
 import org.openqa.selenium.testing.drivers.WebDriverBuilder;
 import org.seleniumhq.jetty9.server.Handler;
@@ -63,6 +58,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 
 import javax.servlet.ServletException;
@@ -93,7 +89,6 @@ import javax.servlet.http.HttpServletResponse;
  * <p>Note: depending on the condition under test, the various pages may or may
  * not be served by the same server.
  */
-@Ignore(PHANTOMJS)
 @Ignore(SAFARI)
 public class ReferrerTest extends JUnit4TestBase {
 
@@ -118,7 +113,6 @@ public class ReferrerTest extends JUnit4TestBase {
    * Tests navigation when all of the files are hosted on the same domain and the browser
    * does not have a proxy configured.
    */
-  @JavascriptEnabled
   @Test
   @NeedsLocalEnvironment
   public void basicHistoryNavigationWithoutAProxy() {
@@ -141,7 +135,6 @@ public class ReferrerTest extends JUnit4TestBase {
   /**
    * Tests navigation across multiple domains when the browser does not have a proxy configured.
    */
-  @JavascriptEnabled
   @Test
   @NeedsLocalEnvironment
   public void crossDomainHistoryNavigationWithoutAProxy() {
@@ -172,7 +165,6 @@ public class ReferrerTest extends JUnit4TestBase {
    * Tests navigation when all of the files are hosted on the same domain and the browser is
    * configured to use a proxy that permits direct access to that domain.
    */
-  @JavascriptEnabled
   @Test
   @NeedsLocalEnvironment
   public void basicHistoryNavigationWithADirectProxy() {
@@ -201,7 +193,6 @@ public class ReferrerTest extends JUnit4TestBase {
    * Tests navigation across multiple domains when the browser is configured to use a proxy that
    * permits direct access to those domains.
    */
-  @JavascriptEnabled
   @Test
   @NeedsLocalEnvironment
   public void crossDomainHistoryNavigationWithADirectProxy() {
@@ -236,9 +227,7 @@ public class ReferrerTest extends JUnit4TestBase {
    * Tests navigation across multiple domains when the browser is configured to use a proxy that
    * redirects the second domain to another host.
    */
-  @JavascriptEnabled
   @Test
-  @Ignore(MARIONETTE)
   @NeedsLocalEnvironment
   public void crossDomainHistoryNavigationWithAProxiedHost() {
     testServer1.start();
@@ -277,9 +266,7 @@ public class ReferrerTest extends JUnit4TestBase {
    * intercepts requests to a specific host (www.example.com) - all other requests are permitted
    * to connect directly to the target server.
    */
-  @JavascriptEnabled
   @Test
-  @Ignore(MARIONETTE)
   @NeedsLocalEnvironment
   public void crossDomainHistoryNavigationWhenProxyInterceptsHostRequests() {
     testServer1.start();
@@ -315,7 +302,6 @@ public class ReferrerTest extends JUnit4TestBase {
    * Tests navigation on a single domain where the browser is configured to use a proxy that
    * intercepts requests for page 2.
    */
-  @JavascriptEnabled
   @Test
   @Ignore(value = IE,
       reason = "IEDriver does not disable automatic proxy caching, causing this test to fail, issue 6629")
@@ -400,7 +386,7 @@ public class ReferrerTest extends JUnit4TestBase {
 
   private static String encode(String url) {
     try {
-      return URLEncoder.encode(url, Charsets.UTF_8.name());
+      return URLEncoder.encode(url, UTF_8.name());
     } catch (UnsupportedEncodingException e) {
       throw new RuntimeException("UTF-8 should always be supported!", e);
     }
@@ -417,10 +403,9 @@ public class ReferrerTest extends JUnit4TestBase {
       Proxy proxy = new Proxy();
       proxy.setProxyAutoconfigUrl(pacUrl);
 
-      DesiredCapabilities caps = new DesiredCapabilities();
-      caps.setCapability(PROXY, proxy);
+      Capabilities caps = new ImmutableCapabilities(PROXY, proxy);
 
-      return driver = new WebDriverBuilder().setDesiredCapabilities(caps).get();
+      return driver = new WebDriverBuilder().get(caps);
     }
 
     @Override
@@ -513,7 +498,7 @@ public class ReferrerTest extends JUnit4TestBase {
     private final List<HttpRequest> requests;
 
     TestServer() {
-      requests = Lists.newCopyOnWriteArrayList();
+      requests = new CopyOnWriteArrayList<>();
       addHandler(new PageRequestHandler(requests));
     }
 
@@ -528,7 +513,7 @@ public class ReferrerTest extends JUnit4TestBase {
     private String pacFileContents;
 
     ProxyServer() {
-      requests = Lists.newCopyOnWriteArrayList();
+      requests = new CopyOnWriteArrayList<>();
       addHandler(new PageRequestHandler(requests) {
         @Override
         public void handle(String s, Request baseRequest, HttpServletRequest request,

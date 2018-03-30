@@ -30,14 +30,12 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
-import static org.openqa.selenium.testing.Driver.MARIONETTE;
+import static org.openqa.selenium.testing.Driver.SAFARI;
 import static org.openqa.selenium.testing.TestUtilities.catchThrowable;
 
 import org.junit.Test;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.testing.Ignore;
 import org.openqa.selenium.testing.JUnit4TestBase;
-import org.openqa.selenium.testing.JavascriptEnabled;
 import org.openqa.selenium.testing.NotYetImplemented;
 import org.openqa.selenium.testing.TestUtilities;
 
@@ -129,7 +127,7 @@ public class ElementAttributeTest extends JUnit4TestBase {
   }
 
   @Test
-  @Ignore(value = MARIONETTE, issue = "https://github.com/mozilla/geckodriver/issues/579")
+  @NotYetImplemented(SAFARI)
   public void testShouldThrowExceptionIfSendingKeysToElementDisabledUsingRandomDisabledStrings() {
     driver.get(pages.formPage);
     WebElement disabledTextElement1 = driver.findElement(By.id("disabledTextElement1"));
@@ -293,6 +291,7 @@ public class ElementAttributeTest extends JUnit4TestBase {
 
   // This is a test-case re-creating issue 900.
   @Test
+  @NotYetImplemented(SAFARI)
   public void testShouldReturnValueOfOnClickAttribute() {
     driver.get(pages.javascriptPage);
 
@@ -319,7 +318,6 @@ public class ElementAttributeTest extends JUnit4TestBase {
   }
 
   @Test
-  @NotYetImplemented(value = MARIONETTE, reason = "https://github.com/mozilla/geckodriver/issues/594")
   public void testCanRetrieveTheCurrentValueOfATextFormField_textInput() {
     driver.get(pages.formPage);
     WebElement element = driver.findElement(By.id("working"));
@@ -329,7 +327,6 @@ public class ElementAttributeTest extends JUnit4TestBase {
   }
 
   @Test
-  @NotYetImplemented(value = MARIONETTE, reason = "https://github.com/mozilla/geckodriver/issues/594")
   public void testCanRetrieveTheCurrentValueOfATextFormField_emailInput() {
     driver.get(pages.formPage);
     WebElement element = driver.findElement(By.id("email"));
@@ -339,7 +336,6 @@ public class ElementAttributeTest extends JUnit4TestBase {
   }
 
   @Test
-  @NotYetImplemented(value = MARIONETTE, reason = "https://github.com/mozilla/geckodriver/issues/594")
   public void testCanRetrieveTheCurrentValueOfATextFormField_textArea() {
     driver.get(pages.formPage);
     WebElement element = driver.findElement(By.id("emptyTextArea"));
@@ -358,6 +354,7 @@ public class ElementAttributeTest extends JUnit4TestBase {
   }
 
   @Test
+  @NotYetImplemented(SAFARI)
   public void testShouldReturnTrueForPresentBooleanAttributes() {
     driver.get(pages.booleanAttributes);
     WebElement element1 = driver.findElement(By.id("emailRequired"));
@@ -407,7 +404,6 @@ public class ElementAttributeTest extends JUnit4TestBase {
     assertEquals("true", element.getAttribute("multiple"));
   }
 
-  @JavascriptEnabled
   @Test
   public void testGetAttributeOfUserDefinedProperty() {
     driver.get(pages.userDefinedProperty);

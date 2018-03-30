@@ -19,35 +19,59 @@ package org.openqa.selenium;
 
 
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
-public class ImmutableCapabilities implements Capabilities, Serializable {
+public class ImmutableCapabilities extends AbstractCapabilities implements Serializable {
 
   private static final long serialVersionUID = 665766108972704060L;
 
-  private final Map<String, Object> caps = new HashMap<>();
+  public ImmutableCapabilities() {
+  }
+
+  public ImmutableCapabilities(String k, Object v) {
+    setCapability(k, v);
+  }
+
+  public ImmutableCapabilities(String k1, Object v1, String k2, Object v2) {
+    setCapability(k1, v1);
+    setCapability(k2, v2);
+  }
+
+  public ImmutableCapabilities(String k1, Object v1, String k2, Object v2, String k3, Object v3) {
+    setCapability(k1, v1);
+    setCapability(k2, v2);
+    setCapability(k3, v3);
+  }
+
+  public ImmutableCapabilities(
+      String k1, Object v1,
+      String k2, Object v2,
+      String k3, Object v3,
+      String k4, Object v4) {
+    setCapability(k1, v1);
+    setCapability(k2, v2);
+    setCapability(k3, v3);
+    setCapability(k4, v4);
+  }
+
+  public ImmutableCapabilities(
+      String k1, Object v1,
+      String k2, Object v2,
+      String k3, Object v3,
+      String k4, Object v4,
+      String k5, Object v5) {
+    setCapability(k1, v1);
+    setCapability(k2, v2);
+    setCapability(k3, v3);
+    setCapability(k4, v4);
+    setCapability(k5, v5);
+  }
 
   public ImmutableCapabilities(Capabilities other) {
     this(other.asMap());
   }
 
   public ImmutableCapabilities(Map<String, ?> capabilities) {
-    capabilities.forEach((key, value) -> {
-      if (value != null) {
-        caps.put(key, value);
-      }
-    });
-  }
-
-  @Override
-  public Object getCapability(String capabilityName) {
-    return caps.get(capabilityName);
-  }
-
-  @Override
-  public Map<String, ?> asMap() {
-    return Collections.unmodifiableMap(caps);
+    capabilities.forEach(this::setCapability);
   }
 }

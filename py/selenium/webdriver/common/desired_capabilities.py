@@ -49,8 +49,6 @@ class DesiredCapabilities(object):
 
     FIREFOX = {
         "browserName": "firefox",
-        "version": "",
-        "platform": "ANY",
         "marionette": True,
         "acceptInsecureCerts": True,
     }
@@ -121,4 +119,10 @@ class DesiredCapabilities(object):
         "version": "",
         "platform": "ANY",
         "javascriptEnabled": True,
+    }
+
+    WEBKITGTK = {
+        "browserName": "MiniBrowser",
+        "version": "",
+        "platform": "ANY",
     }

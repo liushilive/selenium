@@ -30,6 +30,7 @@ import static org.openqa.selenium.WaitingConditions.windowHandleCountToBeGreater
 import static org.openqa.selenium.support.ui.ExpectedConditions.alertIsPresent;
 import static org.openqa.selenium.testing.Driver.IE;
 import static org.openqa.selenium.testing.Driver.MARIONETTE;
+import static org.openqa.selenium.testing.Driver.SAFARI;
 import static org.openqa.selenium.testing.TestUtilities.catchThrowable;
 
 import org.junit.Rule;
@@ -40,8 +41,8 @@ import org.junit.runner.Description;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.testing.Ignore;
 import org.openqa.selenium.testing.JUnit4TestBase;
-import org.openqa.selenium.testing.JavascriptEnabled;
 import org.openqa.selenium.testing.NoDriverAfterTest;
+import org.openqa.selenium.testing.NotYetImplemented;
 import org.openqa.selenium.testing.SwitchToTopAfterTest;
 import org.openqa.selenium.testing.TestUtilities;
 import org.openqa.selenium.testing.drivers.Browser;
@@ -111,6 +112,7 @@ public class WindowSwitchingTest extends JUnit4TestBase {
 
   @NoDriverAfterTest(failedOnly = true)
   @Test
+  @NotYetImplemented(value = SAFARI, reason = "Throws no exception")
   public void testShouldThrowNoSuchWindowExceptionOnAnAttemptToGetItsHandle() {
     driver.get(pages.xhtmlTestPage);
     Set<String> currentWindowHandles = driver.getWindowHandles();
@@ -128,6 +130,7 @@ public class WindowSwitchingTest extends JUnit4TestBase {
 
   @NoDriverAfterTest(failedOnly = true)
   @Test
+  @NotYetImplemented(value = SAFARI, reason = "Throws no exception")
   public void testShouldThrowNoSuchWindowExceptionOnAnyOperationIfAWindowIsClosed() {
     driver.get(pages.xhtmlTestPage);
     Set<String> currentWindowHandles = driver.getWindowHandles();
@@ -148,6 +151,7 @@ public class WindowSwitchingTest extends JUnit4TestBase {
 
   @NoDriverAfterTest(failedOnly = true)
   @Test
+  @NotYetImplemented(value = SAFARI, reason = "Throws StaleElementReferenceException")
   public void testShouldThrowNoSuchWindowExceptionOnAnyElementOperationIfAWindowIsClosed() {
     driver.get(pages.xhtmlTestPage);
     Set<String> currentWindowHandles = driver.getWindowHandles();
@@ -167,6 +171,7 @@ public class WindowSwitchingTest extends JUnit4TestBase {
   @NoDriverAfterTest
   @Test
   @Ignore(IE)
+  @NotYetImplemented(SAFARI)
   public void testShouldBeAbleToIterateOverAllOpenWindows() {
     driver.get(pages.xhtmlTestPage);
     String original = driver.getWindowHandle();
@@ -188,9 +193,7 @@ public class WindowSwitchingTest extends JUnit4TestBase {
     assertEquals(3, allWindowTitles.size());
   }
 
-  @JavascriptEnabled
   @Test
-  @Ignore(value = MARIONETTE, issue = "https://github.com/mozilla/geckodriver/issues/611")
   public void testClickingOnAButtonThatClosesAnOpenWindowDoesNotCauseTheBrowserToHang()
       throws Exception {
     assumeFalse(Browser.detect() == Browser.opera &&
@@ -222,9 +225,7 @@ public class WindowSwitchingTest extends JUnit4TestBase {
     // If we make it this far, we're all good.
   }
 
-  @JavascriptEnabled
   @Test
-  @Ignore(value = MARIONETTE, issue = "https://github.com/mozilla/geckodriver/issues/611")
   public void testCanCallGetWindowHandlesAfterClosingAWindow() throws Exception {
     assumeFalse(Browser.detect() == Browser.opera &&
                 TestUtilities.getEffectivePlatform().is(Platform.WINDOWS));

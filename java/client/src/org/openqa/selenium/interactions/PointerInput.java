@@ -20,6 +20,7 @@ package org.openqa.selenium.interactions;
 import com.google.common.base.Preconditions;
 
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.internal.WrapsElement;
 
 import java.time.Duration;
 import java.util.HashMap;
@@ -50,7 +51,7 @@ public class PointerInput implements InputSource, Encodable {
   public Map<String, Object> encode() {
     Map<String, Object> toReturn = new HashMap<>();
 
-    toReturn.put("type", "pointer");
+    toReturn.put("type", getInputType().getType());
     toReturn.put("id", name);
 
     Map<String, Object> parameters = new HashMap<>();
@@ -197,7 +198,11 @@ public class PointerInput implements InputSource, Encodable {
     private final Object originObject;
 
     public Object asArg() {
-      return originObject;
+      Object arg = originObject;
+      while (arg instanceof WrapsElement) {
+        arg = ((WrapsElement) arg).getWrappedElement();
+      }
+      return arg;
     }
 
     private Origin(Object originObject) {

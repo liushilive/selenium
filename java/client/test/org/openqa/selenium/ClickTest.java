@@ -40,7 +40,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.testing.Ignore;
 import org.openqa.selenium.testing.JUnit4TestBase;
-import org.openqa.selenium.testing.JavascriptEnabled;
 import org.openqa.selenium.testing.NoDriverAfterTest;
 import org.openqa.selenium.testing.NotYetImplemented;
 import org.openqa.selenium.testing.SwitchToTopAfterTest;
@@ -50,7 +49,7 @@ import java.util.Set;
 public class ClickTest extends JUnit4TestBase {
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     driver.get(pages.clicksPage);
   }
 
@@ -68,7 +67,6 @@ public class ClickTest extends JUnit4TestBase {
     wait.until(titleIs("XHTML Test Page"));
   }
 
-  @JavascriptEnabled
   @Test
   public void testCanClickOnAnAnchorAndNotReloadThePage() {
     ((JavascriptExecutor) driver).executeScript("document.latch = true");
@@ -92,7 +90,6 @@ public class ClickTest extends JUnit4TestBase {
     wait.until(pageSourceToContain("Hello WebDriver"));
   }
 
-  @JavascriptEnabled
   @SwitchToTopAfterTest
   @Test
   public void testElementsFoundByJsCanLoadUpdatesInAnotherFrame() {
@@ -107,7 +104,6 @@ public class ClickTest extends JUnit4TestBase {
     wait.until(pageSourceToContain("Hello WebDriver"));
   }
 
-  @JavascriptEnabled
   @SwitchToTopAfterTest
   @Test
   public void testJsLocatedElementsCanUpdateFramesIfFoundSomehowElse() {
@@ -126,9 +122,7 @@ public class ClickTest extends JUnit4TestBase {
     wait.until(pageSourceToContain("Hello WebDriver"));
   }
 
-  @JavascriptEnabled
   @Test
-  @NotYetImplemented(value = MARIONETTE, reason = "https://github.com/mozilla/geckodriver/issues/594")
   public void testCanClickOnAnElementWithTopSetToANegativeNumber() {
     String page = appServer.whereIs("styledPage.html");
     driver.get(page);
@@ -141,15 +135,8 @@ public class ClickTest extends JUnit4TestBase {
   }
 
   @Test
-  @Ignore(SAFARI)
-  public void testShouldClickOnFirstBoundingClientRectWithNonZeroSize() {
-    driver.findElement(By.id("twoClientRects")).click();
-    wait.until(titleIs("XHTML Test Page"));
-  }
-
-  @JavascriptEnabled
-  @Test
   @Ignore(MARIONETTE)
+  @NotYetImplemented(SAFARI)
   public void testShouldSetRelatedTargetForMouseOver() {
     driver.get(pages.javascriptPage);
 
@@ -160,10 +147,15 @@ public class ClickTest extends JUnit4TestBase {
     assertEquals("parent matches? true", log);
   }
 
-  @JavascriptEnabled
+  @Test
+  @NotYetImplemented(SAFARI)
+  public void testShouldClickOnFirstBoundingClientRectWithNonZeroSize() {
+    driver.findElement(By.id("twoClientRects")).click();
+    wait.until(titleIs("XHTML Test Page"));
+  }
+
   @NoDriverAfterTest
   @Test
-  @Ignore(value = SAFARI, reason = "issue 3693")
   public void testShouldOnlyFollowHrefOnce() {
     driver.get(pages.clicksPage);
     String current = driver.getWindowHandle();
@@ -197,6 +189,7 @@ public class ClickTest extends JUnit4TestBase {
   }
 
   @Test
+  @NotYetImplemented(SAFARI)
   public void testCanClickOnALinkWithEnclosedImage() {
     driver.findElement(By.id("link-with-enclosed-image")).click();
 
@@ -211,6 +204,7 @@ public class ClickTest extends JUnit4TestBase {
   }
 
   @Test
+  @NotYetImplemented(SAFARI)
   public void testCanClickOnALinkThatContainsTextWrappedInASpan() {
     driver.findElement(By.id("link-with-enclosed-span")).click();
 
@@ -245,6 +239,7 @@ public class ClickTest extends JUnit4TestBase {
   }
 
   @Test
+  @NotYetImplemented(SAFARI)
   public void testClicksASurroundingStrongTag() {
     driver.get(appServer.whereIs("ClickTest_testClicksASurroundingStrongTag.html"));
     driver.findElement(By.tagName("a")).click();
@@ -254,6 +249,7 @@ public class ClickTest extends JUnit4TestBase {
   @Test
   @Ignore(IE)
   @Ignore(MARIONETTE)
+  @NotYetImplemented(SAFARI)
   public void testCanClickAnImageMapArea() {
     driver.get(appServer.whereIs("click_tests/google_map.html"));
     driver.findElement(By.id("rectG")).click();
@@ -270,7 +266,7 @@ public class ClickTest extends JUnit4TestBase {
 
   @Test
   @Ignore(FIREFOX)
-  @Ignore(MARIONETTE)
+  @NotYetImplemented(value = MARIONETTE, reason = "https://bugzilla.mozilla.org/show_bug.cgi?id=1422272")
   public void testShouldBeAbleToClickOnAnElementGreaterThanTwoViewports() {
     String url = appServer.whereIs("click_too_big.html");
     driver.get(url);
@@ -284,7 +280,8 @@ public class ClickTest extends JUnit4TestBase {
 
   @SwitchToTopAfterTest
   @Test
-  @Ignore(MARIONETTE)
+  @Ignore(value = MARIONETTE, issue = "https://github.com/mozilla/geckodriver/issues/901")
+  @NotYetImplemented(SAFARI)
   public void testShouldBeAbleToClickOnAnElementInFrameGreaterThanTwoViewports() {
     String url = appServer.whereIs("click_too_big_in_frame.html");
     driver.get(url);
@@ -331,7 +328,6 @@ public class ClickTest extends JUnit4TestBase {
     wait.until(titleIs("XHTML Test Page"));
   }
 
-  @JavascriptEnabled
   @Test
   public void testShouldBeAbleToClickOnLinksWithNoHrefAttribute() {
     driver.get(pages.javascriptPage);
@@ -342,7 +338,6 @@ public class ClickTest extends JUnit4TestBase {
     wait.until(titleIs("Changed"));
   }
 
-  @JavascriptEnabled
   @Test
   public void testShouldBeAbleToClickOnALinkThatWrapsToTheNextLine() {
     driver.get(appServer.whereIs("click_tests/link_that_wraps.html"));
@@ -352,7 +347,6 @@ public class ClickTest extends JUnit4TestBase {
     wait.until(titleIs("Submitted Successfully!"));
   }
 
-  @JavascriptEnabled
   @Test
   public void testShouldBeAbleToClickOnASpanThatWrapsToTheNextLine() {
     driver.get(appServer.whereIs("click_tests/span_that_wraps.html"));
@@ -362,12 +356,11 @@ public class ClickTest extends JUnit4TestBase {
     wait.until(titleIs("Submitted Successfully!"));
   }
 
-  @JavascriptEnabled
   @Test
   @Ignore(CHROME)
   @Ignore(IE)
   @Ignore(MARIONETTE)
-  @Ignore(SAFARI)
+  @NotYetImplemented(SAFARI)
   public void testShouldBeAbleToClickOnAPartiallyOverlappedLinkThatWrapsToTheNextLine() {
     driver.get(appServer.whereIs("click_tests/wrapped_overlapping_elements.html"));
 
@@ -376,7 +369,6 @@ public class ClickTest extends JUnit4TestBase {
     wait.until(titleIs("Submitted Successfully!"));
   }
 
-  @NotYetImplemented(MARIONETTE)
   @Test
   public void clickingOnADisabledElementIsANoOp() {
     driver.get(appServer.whereIs("click_tests/disabled_element.html"));

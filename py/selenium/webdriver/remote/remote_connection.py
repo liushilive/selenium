@@ -19,6 +19,7 @@ import logging
 import socket
 import string
 import base64
+import platform
 
 try:
     import http.client as httplib
@@ -30,6 +31,7 @@ except ImportError:  # above is available in py3+, below is py2.7
     import urlparse as parse
 
 from selenium.webdriver.common import utils as common_utils
+from selenium import __version__
 from .command import Command
 from .errorhandler import ErrorCode
 from . import utils
@@ -172,10 +174,14 @@ class RemoteConnection(object):
          - keep_alive (Boolean) - Is this a keep-alive connection (default: False)
         """
 
+        system = platform.system().lower()
+        if system == "darwin":
+            system = "mac"
+
         headers = {
             'Accept': 'application/json',
             'Content-Type': 'application/json;charset=UTF-8',
-            'User-Agent': 'Python http auth'
+            'User-Agent': 'selenium/{} (python {})'.format(__version__, system)
         }
 
         if parsed_url.username:
@@ -200,6 +206,10 @@ class RemoteConnection(object):
             port = parsed_url.port or None
             if parsed_url.scheme == "https":
                 ip = parsed_url.hostname
+            elif port and not common_utils.is_connectable(port, parsed_url.hostname):
+                ip = None
+                LOGGER.info('Could not connect to port {} on host '
+                            '{}'.format(port, parsed_url.hostname))
             else:
                 ip = common_utils.find_connectable_ip(parsed_url.hostname,
                                                       port=port)
@@ -350,20 +360,12 @@ class RemoteConnection(object):
                 ('POST', '/session/$sessionId/moveto'),
             Command.GET_WINDOW_SIZE:
                 ('GET', '/session/$sessionId/window/$windowHandle/size'),
-            Command.W3C_GET_WINDOW_SIZE:
-                ('GET', '/session/$sessionId/window/size'),
             Command.SET_WINDOW_SIZE:
                 ('POST', '/session/$sessionId/window/$windowHandle/size'),
-            Command.W3C_SET_WINDOW_SIZE:
-                ('POST', '/session/$sessionId/window/size'),
             Command.GET_WINDOW_POSITION:
                 ('GET', '/session/$sessionId/window/$windowHandle/position'),
             Command.SET_WINDOW_POSITION:
                 ('POST', '/session/$sessionId/window/$windowHandle/position'),
-            Command.W3C_GET_WINDOW_POSITION:
-                ('GET', '/session/$sessionId/window/position'),
-            Command.W3C_SET_WINDOW_POSITION:
-                ('POST', '/session/$sessionId/window/position'),
             Command.SET_WINDOW_RECT:
                 ('POST', '/session/$sessionId/window/rect'),
             Command.GET_WINDOW_RECT:
@@ -442,6 +444,10 @@ class RemoteConnection(object):
                 ('GET', '/session/$sessionId/contexts'),
             Command.SWITCH_TO_CONTEXT:
                 ('POST', '/session/$sessionId/context'),
+            Command.FULLSCREEN_WINDOW:
+                ('POST', '/session/$sessionId/window/fullscreen'),
+            Command.MINIMIZE_WINDOW:
+                ('POST', '/session/$sessionId/window/minimize')
         }
 
     def execute(self, command, params):
@@ -458,8 +464,10 @@ class RemoteConnection(object):
         """
         command_info = self._commands[command]
         assert command_info is not None, 'Unrecognised command %s' % command
-        data = utils.dump_json(params)
         path = string.Template(command_info[1]).substitute(params)
+        if hasattr(self, 'w3c') and self.w3c and isinstance(params, dict) and 'sessionId' in params:
+            del params['sessionId']
+        data = utils.dump_json(params)
         url = '%s%s' % (self._url, path)
         return self._request(command_info[0], url, body=data)
 

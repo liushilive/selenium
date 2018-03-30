@@ -17,6 +17,7 @@
 
 package org.openqa.selenium.remote;
 
+import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.startsWith;
@@ -28,7 +29,6 @@ import static org.junit.Assert.fail;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -57,6 +57,7 @@ import org.openqa.selenium.UnsupportedCommandException;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.interactions.InvalidCoordinatesException;
 import org.openqa.selenium.interactions.MoveTargetOutOfBoundsException;
+import org.openqa.selenium.json.Json;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -296,7 +297,7 @@ public class ErrorHandlerTest {
   public void testShouldStillTryToBuildWebDriverExceptionIfClassIsNotProvidedAndStackTraceIsNotForJava() {
     Map<String, ?> data = ImmutableMap.of(
         "message", "some error message",
-        "stackTrace", Lists.newArrayList(
+        "stackTrace", asList(
             ImmutableMap.of("lineNumber", 1224,
                 "methodName", "someMethod",
                 "className", "MyClass",
@@ -331,7 +332,7 @@ public class ErrorHandlerTest {
   public void testToleratesNonNumericLineNumber() {
     Map<String, ?> data = ImmutableMap.of(
         "message", "some error message",
-        "stackTrace", Lists.newArrayList(
+        "stackTrace", asList(
             ImmutableMap.of("lineNumber", "some string, might be empty or 'Not avalable'",
                 "methodName", "someMethod",
                 "className", "MyClass",
@@ -366,7 +367,7 @@ public class ErrorHandlerTest {
   public void testToleratesNumericLineNumberAsString() {
     Map<String, ?> data = ImmutableMap.of(
         "message", "some error message",
-        "stackTrace", Lists.newArrayList(
+        "stackTrace", asList(
             ImmutableMap.of("lineNumber", "1224", // number as a string
                 "methodName", "someMethod",
                 "className", "MyClass",
@@ -520,7 +521,7 @@ public class ErrorHandlerTest {
 
   @SuppressWarnings({"unchecked"})
   private static Map<String, Object> toMap(Object o) throws Exception {
-    String rawJson = new BeanToJsonConverter().convert(o);
-    return new JsonToBeanConverter().convert(Map.class, rawJson);
+    String rawJson = new Json().toJson(o);
+    return new Json().toType(rawJson, Map.class);
   }
 }

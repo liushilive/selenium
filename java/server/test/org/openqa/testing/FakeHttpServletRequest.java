@@ -17,17 +17,16 @@
 
 package org.openqa.testing;
 
-import com.google.common.base.Charsets;
-import com.google.common.collect.Maps;
-
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
@@ -78,8 +77,8 @@ public class FakeHttpServletRequest extends HeaderContainer
   };
 
   public FakeHttpServletRequest(String method, UrlInfo requestUrl) {
-    this.attributes = Maps.newHashMap();
-    this.parameters = Maps.newHashMap();
+    this.attributes = new HashMap<>();
+    this.parameters = new HashMap<>();
     this.method = method.toUpperCase();
     this.requestUrl = requestUrl;
 
@@ -94,7 +93,7 @@ public class FakeHttpServletRequest extends HeaderContainer
   public void setBody(final String data) {
     this.inputStream = new ServletInputStream() {
       private final ByteArrayInputStream delegate =
-          new ByteArrayInputStream(data.getBytes(Charsets.UTF_8));
+          new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8));
 
       @Override
       public void close() throws IOException {

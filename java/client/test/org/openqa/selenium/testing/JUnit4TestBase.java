@@ -66,7 +66,7 @@ public abstract class JUnit4TestBase implements WrapsDriver {
   protected Wait<WebDriver> shortWait;
 
   @Before
-  public void prepareEnvironment() throws Exception {
+  public void prepareEnvironment() {
     environment = GlobalTestEnvironment.get(InProcessTestEnvironment.class);
     appServer = environment.getAppServer();
 
@@ -180,7 +180,8 @@ public abstract class JUnit4TestBase implements WrapsDriver {
           throw new RuntimeException("Sauce-related failure. Tried re-creating the driver, but that failed too.", t);
         }
       } else {
-        throw Throwables.propagate(t);
+        Throwables.throwIfUnchecked(t);
+        throw new RuntimeException(t);
       }
     }
   }
@@ -234,7 +235,7 @@ public abstract class JUnit4TestBase implements WrapsDriver {
 
   private void createDriver() {
     driver = actuallyCreateDriver();
-    wait = new WebDriverWait(driver, 30);
+    wait = new WebDriverWait(driver, 10);
     shortWait = new WebDriverWait(driver, 5);
   }
 
@@ -293,7 +294,7 @@ public abstract class JUnit4TestBase implements WrapsDriver {
           break;
 
         case HTMLUNIT:
-          if (browser == Browser.htmlunit || browser == Browser.htmlunit_js) {
+          if (browser == Browser.htmlunit) {
             return true;
           }
           break;
@@ -304,20 +305,32 @@ public abstract class JUnit4TestBase implements WrapsDriver {
           }
           break;
 
-        case MARIONETTE:
-          if (browser == Browser.ff && Boolean.getBoolean("webdriver.firefox.marionette")) {
+        case EDGE:
+          if (browser == Browser.edge) {
             return true;
           }
           break;
 
-        case PHANTOMJS:
-          if (browser == Browser.phantomjs) {
+        case MARIONETTE:
+          if (browser != Browser.ff) {
+            return false;
+          }
+          if (System.getProperty("webdriver.firefox.marionette") == null ||
+              Boolean.getBoolean("webdriver.firefox.marionette")) {
             return true;
           }
           break;
 
         case REMOTE:
-          if (Boolean.getBoolean("selenium.browser.remote") || SauceDriver.shouldUseSauce()) {
+          if (Boolean.getBoolean("selenium.browser.grid") ||
+              Boolean.getBoolean("selenium.browser.remote") ||
+              SauceDriver.shouldUseSauce()) {
+            return true;
+          }
+          break;
+
+        case GRID:
+          if (Boolean.getBoolean("selenium.browser.grid")) {
             return true;
           }
           break;
